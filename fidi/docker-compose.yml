@@ -1,0 +1,30 @@
+version: '3'
+
+networks:
+  firefly_lan:
+    external: true
+  proxynet:
+    external: true
+
+services:
+  fidi:
+    image: fireflyiii/data-importer:version-0.9.10
+    container_name: fidi
+    hostname: fidi
+    restart: 'unless-stopped'
+    env_file: .env
+    expose:
+      - 8080
+    volumes:
+      # Could not find any other way to make FIDI function over HTTPS with Traefik... 
+      - './AppServiceProvider.php:/var/www/html/app/Providers/AppServiceProvider.php'
+    networks:
+      - firefly_lan
+      - proxynet
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxynet'
+      - 'traefik.http.routers.fidi.rule=Host(`${HOSTNAME}`)'
+      - 'traefik.http.routers.fidi.entrypoints=websecure'
+      - 'traefik.http.routers.fidi.tls=true'
+      - 'traefik.http.services.fidi.loadbalancer.server.port=8080'
