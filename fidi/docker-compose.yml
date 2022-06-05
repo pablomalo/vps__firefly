@@ -1,8 +1,6 @@
 version: '3'
 
 networks:
-  firefly_lan:
-    external: true
   proxynet:
     external: true
 
@@ -19,7 +17,6 @@ services:
       # Could not find any other way to make FIDI function over HTTPS with Traefik... 
       - './AppServiceProvider.php:/var/www/html/app/Providers/AppServiceProvider.php'
     networks:
-      - firefly_lan
       - proxynet
     labels:
       - 'traefik.enable=true'

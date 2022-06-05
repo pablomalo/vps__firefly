@@ -2,7 +2,7 @@ version: '3'
 
 networks:
   firefly_lan:
-    external: true
+    external: false
   proxynet:
     external: true
 
