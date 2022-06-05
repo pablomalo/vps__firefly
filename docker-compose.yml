@@ -1,0 +1,68 @@
+version: '3'
+
+networks:
+  firefly_lan:
+    external: false
+  proxynet:
+    external: true
+
+volumes:
+  upload:
+  db:
+
+services:
+  app:
+    image: fireflyiii/core:version-5.7.9
+    container_name: firefly
+    hostname: firefly
+    restart: 'unless-stopped'
+    volumes:
+      - upload:/var/www/html/storage/upload
+    networks:
+      - firefly_lan
+      - proxynet
+    env_file: .env
+    expose:
+      - 8080
+    depends_on:
+      - db
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxynet'
+      - 'traefik.http.routers.firefly.rule=Host(`${HOSTNAME}`)'
+      - 'traefik.http.routers.firefly.entrypoints=websecure'
+      - 'traefik.http.routers.firefly.tls=true'
+      - 'traefik.http.services.firefly.loadbalancer.server.port=8080'
+  db:
+    image: mariadb:10.8
+    container_name: fireflydb
+    hostname: fireflydb
+    restart: 'unless-stopped'
+    env_file: .db.env
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - firefly_lan
+  fidi:
+    image: fireflyiii/data-importer:version-0.9.10
+    container_name: fidi
+    hostname: fidi
+    restart: 'unless-stopped'
+    env_file: ./fidi/.env
+    expose:
+      - 8080
+    volumes:
+      # Could not find any other way to make FIDI function over HTTPS with Traefik... 
+      - './fidi/AppServiceProvider.php:/var/www/html/app/Providers/AppServiceProvider.php'
+    networks:
+      - firefly_lan
+      - proxynet
+    depends_on:
+      - app
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxynet'
+      - 'traefik.http.routers.fidi.rule=Host(`fidi.pablomalo.fr`)'
+      - 'traefik.http.routers.fidi.entrypoints=websecure'
+      - 'traefik.http.routers.fidi.tls=true'
+      - 'traefik.http.services.fidi.loadbalancer.server.port=8080'
