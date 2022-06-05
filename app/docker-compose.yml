@@ -1,7 +1,7 @@
 version: '3'
 
 networks:
-  firefly_lan:
+  lan:
     external: false
   proxynet:
     external: true
@@ -19,7 +19,7 @@ services:
     volumes:
       - upload:/var/www/html/storage/upload
     networks:
-      - firefly_lan
+      - lan
       - proxynet
     env_file: .env
     expose:
@@ -42,4 +42,4 @@ services:
     volumes:
       - db:/var/lib/mysql
     networks:
-      - firefly_lan
+      - lan
